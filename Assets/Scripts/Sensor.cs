@@ -9,6 +9,8 @@ using UnityEngine;
 
 public class Sensor : MonoBehaviour
 {
+    private const float TO_METER = 0.001f;
+
     [SerializeField] private string portName = "COM3";
     [SerializeField] private int baudrate = 115200;
 
@@ -16,8 +18,8 @@ public class Sensor : MonoBehaviour
     public int MeasurableRangeMin { get; private set; }
     public int MeasurableRangeMax { get; private set; }
     
-    public List<long> Distances => distances;
-    private List<long> distances = new ();
+    public List<float> Distances => distances;
+    private List<float> distances = new ();
     public long TimeStamp => timeStamp;
     private long timeStamp = 0;
 
@@ -181,7 +183,8 @@ public class Sensor : MonoBehaviour
             
             lock (lookObj)
             {
-                distances = temp.Select(t => t).ToList();
+                // mm -> m, 精度がそこまで必要ないのでfloat
+                distances = temp.Select(t => t * TO_METER).ToList();
             }
         }
         catch (Exception ex)

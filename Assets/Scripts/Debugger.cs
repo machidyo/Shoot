@@ -89,11 +89,10 @@ public class Debugger : MonoBehaviour
         
         try
         {
-            var magnification = 0.001f; // mm -> m
             var maxDistance = 0.5f;
             for(var i = 0; i < cubes.Length - 1; i++)
             {
-                var dist = sensor.Distances[i] * magnification;
+                var dist = sensor.Distances[i];
                 dist = Mathf.Min(dist, maxDistance);
                 var rad = Mathf.Deg2Rad * (perDeg * i - angularAdjust); 
                 var x = dist * Mathf.Cos(rad);
