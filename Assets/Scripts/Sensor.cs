@@ -145,6 +145,12 @@ public class Sensor : MonoBehaviour
 
     private async UniTask UpdateDataOnThread()
     {
+        await UniTask.WaitUntil(() => isOpen);
+
+        Debug.Log($"Start to update sensor data, and data count is {MeasurableRangeMax - MeasurableRangeMin}.");
+        var dataCount = MeasurableRangeMax - MeasurableRangeMin + 1;
+        filtered = new float[dataCount];
+        
         // ループ内でMainThreadとThreadPoolとのスイッチングをしないと、Unityの実行を止めたときに必ずUnityが固まってしまう。
         // おそらくUnityの停止処理からのキャンセルと、ThreadPool内の処理の連携がうまくいっていないと推測し、
         // 性能的に特に影響がなかったので、ループ内で都度Threadingを切り替えることで回避するようにした。
@@ -157,8 +163,13 @@ public class Sensor : MonoBehaviour
         
         Debug.Log("Finished the thread that update sensor data.");
     }
-    
-    private List<long> temp = new ();
+
+    private long rowTimeStamp;
+    private List<long> rowData = new ();
+    private float[] filtered;
+    private const int FILTER_RANGE = 3;
+    private const int MIDDLE = FILTER_RANGE / 2;
+    private long[] sorted = new long[FILTER_RANGE];
     private void UpdateData()
     {
         if (urg == null)
@@ -170,21 +181,39 @@ public class Sensor : MonoBehaviour
         try
         {
             var data = urg.ReadLine();
-            if (!SCIP_Reader.MD(data, ref timeStamp, ref temp))
+            if (!SCIP_Reader.MD(data, ref rowTimeStamp, ref rowData))
             {
                 Debug.Log(data);
                 return;
             }
-            if (temp.Count == 0)
+            if (rowData.Count == 0)
             {
                 Debug.Log(data);
                 return;
+            }
+
+            // median filter
+            for (var i = 0; i < rowData.Count; i++)
+            {
+                if (i < MIDDLE || i > rowData.Count - MIDDLE - 1)
+                {
+                    filtered[i] = rowData[i];
+                }
+                else
+                {
+                    for (var j = 0; j < FILTER_RANGE; j++)
+                    {
+                        sorted[j] = rowData[i - MIDDLE + j];
+                    }
+                    Array.Sort(sorted);
+                    filtered[i] = sorted[MIDDLE];
+                }
             }
             
             lock (lookObj)
             {
-                // mm -> m, 精度がそこまで必要ないのでfloat
-                distances = temp.Select(t => t * TO_METER).ToList();
+                timeStamp = rowTimeStamp;
+                distances = filtered.Select(x => x * TO_METER).ToList();
             }
         }
         catch (Exception ex)
