@@ -28,7 +28,7 @@ public class Debugger : MonoBehaviour
         while (sensor.Distances.Count == 0)
         {
             Debug.Log("データが取得されていません。");
-            await UniTask.Delay(250);
+            await UniTask.Delay(1000);
         }
         
         try
