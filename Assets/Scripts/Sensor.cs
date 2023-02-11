@@ -17,7 +17,8 @@ public class Sensor : MonoBehaviour
     public int AngularResolution { get; private set; }
     public int MeasurableRangeMin { get; private set; }
     public int MeasurableRangeMax { get; private set; }
-    
+
+    public bool IsAvailable { get; private set; } = false;
     public List<float> Distances => distances;
     private List<float> distances = new ();
     public long TimeStamp => timeStamp;
@@ -158,6 +159,10 @@ public class Sensor : MonoBehaviour
         {
             await UniTask.SwitchToThreadPool();
             UpdateData();
+            if (!IsAvailable && distances is { Count: > 0 })
+            {
+                IsAvailable = true;
+            }
             await UniTask.SwitchToMainThread();
         }
         
