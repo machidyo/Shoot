@@ -61,3 +61,5 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
+# paid assets on Unity Asset 
+/[Aa]ssets/UnityAssets/JMO Assets/
