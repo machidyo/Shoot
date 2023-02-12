@@ -63,3 +63,4 @@ crashlytics-build.properties
 
 # paid assets on Unity Asset 
 /[Aa]ssets/UnityAssets/JMO Assets/
+/[Aa]ssets/UnityAssets/PolygonWestern/
